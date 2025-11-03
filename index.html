@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Sirros - Arquitetura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {}
+            },
+            safelist: [
+                {
+                    pattern: /(bg|text|border|from|to|ring)-(blue|amber|red|indigo|fuchsia|emerald|violet|green|pink|purple)-(50|100|200|300|400|500|600|700|800|900)/,
+                }
+            ]
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .module-card {
+            transition: all 0.3s ease;
+        }
+        .module-card:hover {
+            transform: scale(1.01);
+        }
+        .module-card.expanded {
+            transform: scale(1.02);
+        }
+        .details-content {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+        .details-content.expanded {
+            max-height: 2000px;
+            opacity: 1;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .animate-pulse-custom {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen">
+    <div id="app" class="max-w-5xl mx-auto p-6 space-y-6">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl p-8 text-white">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl p-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-bold">Arquitetura do Sistema</h1>
+                    <p class="text-lg opacity-90 mt-1">Sistema de Otimização Sirros</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-4">
+                <span class="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">7 Módulos</span>
+                <span class="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">2 Algoritmos IA</span>
+                <span class="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">96.2% Eficiência</span>
+                <span class="bg-white bg-opacity-20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">79% Redução</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex gap-3">
+            <button onclick="expandAll()" class="flex items-center gap-2 bg-white hover:bg-green-50 text-green-700 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-green-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                Expandir Todos
+            </button>
+            <button onclick="collapseAll()" class="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                Recolher Todos
+            </button>
+        </div>
+
+        <!-- Modules Container -->
+        <div id="modules-container"></div>
+
+        <!-- Results Summary -->
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl shadow-xl p-8 border-2 border-green-200">
+            <h2 class="text-3xl font-bold text-green-900 mb-6 flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Resultados do Sistema
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl p-6 text-center shadow-lg border-2 border-green-200">
+                    <div class="text-4xl font-bold text-green-600 mb-2">60.9h</div>
+                    <div class="text-sm text-gray-600">Capacidade Recuperada</div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 text-center shadow-lg border-2 border-blue-200">
+                    <div class="text-4xl font-bold text-blue-600 mb-2">79.4%</div>
+                    <div class="text-sm text-gray-600">Redução Dessincronia</div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 text-center shadow-lg border-2 border-purple-200">
+                    <div class="text-4xl font-bold text-purple-600 mb-2">96.2%</div>
+                    <div class="text-sm text-gray-600">Eficiência Global</div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 text-center shadow-lg border-2 border-pink-200">
+                    <div class="text-4xl font-bold text-pink-600 mb-2">100%</div>
+                    <div class="text-sm text-gray-600">Jobs Sincronizados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-sm text-gray-500 pt-8">
+            <p>© 2025 Sistema de Otimização Sirros | Versão 2.0</p>
+        </div>
+    </div>
+
+    <script>
+        // Dados dos módulos
+        const modules = [
+            {
+                id: 1,
+                icon: 'database',
+                title: 'Entrada de Dados',
+                subtitle: 'Recepção e validação',
+                gradient: 'from-blue-500 to-cyan-500',
+                details: {
+                    input: ['Formato: Excel (.xlsx)', 'Colunas: 8 campos principais', 'Validação automática de tipos'],
+                    process: ['Leitura de arquivo', 'Verificação de integridade', 'Normalização de formatos'],
+                    complexity: 'O(n)'
+                }
+            },
+            {
+                id: 2,
+                icon: 'git-branch',
+                title: 'Pré-Processamento',
+                subtitle: 'Preparação dos dados',
+                gradient: 'from-amber-500 to-orange-500',
+                details: {
+                    transform: ['Criação de SKU_BASE', 'Mapeamento de prioridades (cores 1-8)', 'Enriquecimento de dados'],
+                    output: 'DataFrame otimizado',
+                    complexity: 'O(n)'
+                }
+            },
+            {
+                id: 3,
+                icon: 'zap',
+                title: 'Análise e Pareamento',
+                subtitle: 'Sincronização de estações',
+                gradient: 'from-red-500 to-rose-600',
+                critical: true,
+                details: {
+                    problem: 'Quando uma estação termina antes → MÁQUINA INTEIRA PARA',
+                    pairs: ['33 ↔ 40', '34 ↔ 39', '35 ↔ 38', '36 ↔ 37'],
+                    rule: 'Threshold: 15% diferença máxima'
+                }
+            },
+            {
+                id: 4,
+                icon: 'trending-up',
+                title: 'Sequenciamento Heurístico',
+                subtitle: 'Ordenação multi-critério',
+                gradient: 'from-indigo-500 to-purple-500',
+                details: {
+                    priorities: [
+                        '1. Material (MG FLEXSOFT prioritário)',
+                        '2. Data de Entrega (urgentes primeiro)',
+                        '3. Referência (agrupar similares)',
+                        '4. Cor (translúcidas → escuras)',
+                        '5. Sincronização (mais balanceados)'
+                    ]
+                }
+            },
+            {
+                id: 5,
+                icon: 'cpu',
+                title: 'Otimização IA',
+                subtitle: 'Simulated Annealing',
+                gradient: 'from-fuchsia-500 to-pink-500',
+                details: {
+                    params: { T0: 5000, alpha: '0.95', iter: 100 },
+                    objective: 'f(S) = makespan + (paradas × 600) + (dessinc × 2)',
+                    result: 'Makespan -9.5h (-4.3%)'
+                }
+            },
+            {
+                id: 6,
+                icon: 'file-text',
+                title: 'Geração de Cronograma',
+                subtitle: 'Data/hora detalhada',
+                gradient: 'from-emerald-500 to-teal-500',
+                details: {
+                    generation: ['Cálculo data/hora início/fim', 'Identificação de setups (10min)', 'Cálculo de dessincronia'],
+                    metrics: ['Taxa Sincronização', 'Tempo Dessincronia', 'Makespan', 'Utilização', 'Balanceamento']
+                }
+            },
+            {
+                id: 7,
+                icon: 'package',
+                title: 'Saídas',
+                subtitle: 'Múltiplos formatos',
+                gradient: 'from-violet-500 to-purple-500',
+                details: {
+                    outputs: [
+                        { name: 'Dashboard Web', desc: 'Interface interativa com métricas' },
+                        { name: 'Excel', desc: 'Cronograma detalhado pronto' },
+                        { name: 'Gráficos PNG', desc: 'Análises visuais' },
+                        { name: 'Relatório KPIs', desc: 'Métricas estruturadas' }
+                    ]
+                }
+            }
+        ];
+
+        // Ícones SVG
+        const icons = {
+            'database': '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>',
+            'git-branch': '<line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path>',
+            'zap': '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+            'trending-up': '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>',
+            'cpu': '<rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line>',
+            'file-text': '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>',
+            'package': '<line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>',
+            'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+            'chevron-up': '<path d="m18 15-6-6-6 6"/>',
+            'check': '<polyline points="20 6 9 17 4 12"></polyline>',
+            'alert-circle': '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>',
+            'info': '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>'
+        };
+
+        function getIcon(name, className = 'w-8 h-8') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${className}">${icons[name]}</svg>`;
+        }
+
+        function toggleModule(id) {
+            const card = document.getElementById(`module-${id}`);
+            const details = document.getElementById(`details-${id}`);
+            const isExpanded = details.classList.contains('expanded');
+            
+            if (isExpanded) {
+                details.classList.remove('expanded');
+                card.classList.remove('expanded');
+            } else {
+                details.classList.add('expanded');
+                card.classList.add('expanded');
+            }
+        }
+
+        function expandAll() {
+            modules.forEach(m => {
+                const details = document.getElementById(`details-${m.id}`);
+                const card = document.getElementById(`module-${m.id}`);
+                details.classList.add('expanded');
+                card.classList.add('expanded');
+            });
+        }
+
+        function collapseAll() {
+            modules.forEach(m => {
+                const details = document.getElementById(`details-${m.id}`);
+                const card = document.getElementById(`module-${m.id}`);
+                details.classList.remove('expanded');
+                card.classList.remove('expanded');
+            });
+        }
+
+        function renderModule1(m) {
+            return `
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">📊 Input</h4>
+                    <ul class="space-y-1">
+                        ${m.details.input.map(item => `
+                            <li class="text-sm text-gray-700 flex items-start gap-2">
+                                ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                                <span>${item}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">⚙️ Processo</h4>
+                    <ul class="space-y-1">
+                        ${m.details.process.map(item => `
+                            <li class="text-sm text-gray-700 flex items-start gap-2">
+                                ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                                <span>${item}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                    ${getIcon('info', 'w-4 h-4 text-blue-600 flex-shrink-0')}
+                    <p class="text-sm text-blue-900 font-medium">Complexidade: ${m.details.complexity}</p>
+                </div>
+            `;
+        }
+
+        function renderModule2(m) {
+            return `
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">🔄 Transformações</h4>
+                    <ul class="space-y-1">
+                        ${m.details.transform.map(item => `
+                            <li class="text-sm text-gray-700 flex items-start gap-2">
+                                ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                                <span>${item}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                    ${getIcon('info', 'w-4 h-4 text-blue-600 flex-shrink-0')}
+                    <p class="text-sm text-blue-900 font-medium">Output: ${m.details.output}</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                    ${getIcon('info', 'w-4 h-4 text-blue-600 flex-shrink-0')}
+                    <p class="text-sm text-blue-900 font-medium">Complexidade: ${m.details.complexity}</p>
+                </div>
+            `;
+        }
+
+        function renderModule3(m) {
+            return `
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                    <p class="text-sm font-semibold text-red-900 flex items-center gap-2">
+                        ${getIcon('alert-circle', 'w-4 h-4')}
+                        ${m.details.problem}
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        ${getIcon('git-branch', 'w-4 h-4')}
+                        Pares Permitidos:
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        ${m.details.pairs.map(pair => `
+                            <div class="bg-green-100 border border-green-400 rounded-lg p-2 text-center font-mono font-bold text-green-800">
+                                ${pair}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                    ${getIcon('info', 'w-4 h-4 text-blue-600 flex-shrink-0')}
+                    <p class="text-sm text-blue-900 font-medium">${m.details.rule}</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-3">🎯 Decisões:</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-3">
+                            ${getIcon('check', 'w-5 h-5 text-green-600 flex-shrink-0')}
+                            <div class="text-sm">
+                                <span class="font-bold">≤15%</span>
+                                <span class="mx-2">→</span>
+                                <span class="font-semibold">PAREAR</span>
+                                <span class="text-gray-600 ml-2">(Job Sincronizado)</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            ${getIcon('check', 'w-5 h-5 text-amber-600 flex-shrink-0')}
+                            <div class="text-sm">
+                                <span class="font-bold">15-40%</span>
+                                <span class="mx-2">→</span>
+                                <span class="font-semibold">DIVIDIR</span>
+                                <span class="text-gray-600 ml-2">(Múltiplos jobs)</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-lg p-3">
+                            ${getIcon('check', 'w-5 h-5 text-red-600 flex-shrink-0')}
+                            <div class="text-sm">
+                                <span class="font-bold">>40%</span>
+                                <span class="mx-2">→</span>
+                                <span class="font-semibold">SEPARAR</span>
+                                <span class="text-gray-600 ml-2">(Órfãos)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 pt-3">
+                    <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                        <h5 class="font-bold text-red-900 mb-2">Antes</h5>
+                        <div class="space-y-1 text-sm">
+                            <p>Sincronizados: 46.4%</p>
+                            <p>Críticos: 27</p>
+                            <p>Dessincronia: 18.1%</p>
+                        </div>
+                    </div>
+                    <div class="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                        <h5 class="font-bold text-green-900 mb-2">Depois</h5>
+                        <div class="space-y-1 text-sm">
+                            <p>Sincronizados: 100%</p>
+                            <p>Críticos: 0</p>
+                            <p>Dessincronia: 3.9%</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderModule4(m) {
+            return `
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-3">📋 Ordem de Prioridade:</h4>
+                    <div class="space-y-2">
+                        ${m.details.priorities.map((priority, idx) => `
+                            <div class="flex items-center gap-2 bg-indigo-50 p-2 rounded-lg">
+                                <div class="w-6 h-6 bg-indigo-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                    ${idx + 1}
+                                </div>
+                                <p class="text-sm text-gray-700">${priority.split('. ')[1]}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                    ${getIcon('info', 'w-4 h-4 text-blue-600 flex-shrink-0')}
+                    <p class="text-sm text-blue-900 font-medium">Balanceamento: Alocação para máquina com menor carga</p>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center gap-2">
+                    ${getIcon('info', 'w-4 h-4 text-blue-600 flex-shrink-0')}
+                    <p class="text-sm text-blue-900 font-medium">Complexidade: O(n log n)</p>
+                </div>
+            `;
+        }
+
+        function renderModule5(m) {
+            return `
+                <div class="grid grid-cols-3 gap-3">
+                    ${Object.entries(m.details.params).map(([key, value]) => `
+                        <div class="bg-fuchsia-50 border border-fuchsia-300 rounded-lg p-3 text-center">
+                            <div class="text-xs font-bold text-fuchsia-900">${key}</div>
+                            <div class="text-lg font-mono font-bold text-fuchsia-700">${value}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">🎯 Função Objetivo:</h4>
+                    <code class="text-sm text-gray-700 font-mono">${m.details.objective}</code>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">🔄 Movimentos</h4>
+                    <ul class="space-y-1">
+                        <li class="text-sm text-gray-700 flex items-start gap-2">
+                            ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                            <span>Swap Intra-Máquina</span>
+                        </li>
+                        <li class="text-sm text-gray-700 flex items-start gap-2">
+                            ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                            <span>Swap Inter-Máquina</span>
+                        </li>
+                        <li class="text-sm text-gray-700 flex items-start gap-2">
+                            ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                            <span>Realocação</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 border-2 border-green-400 rounded-lg p-3">
+                    <p class="font-bold text-green-900">✨ ${m.details.result}</p>
+                </div>
+            `;
+        }
+
+        function renderModule6(m) {
+            return `
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">📋 Geração</h4>
+                    <ul class="space-y-1">
+                        ${m.details.generation.map(item => `
+                            <li class="text-sm text-gray-700 flex items-start gap-2">
+                                ${getIcon('check', 'w-4 h-4 text-green-500 mt-0.5 flex-shrink-0')}
+                                <span>${item}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-800 mb-2">📊 Métricas:</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        ${m.details.metrics.map(metric => `
+                            <div class="bg-emerald-50 border border-emerald-300 rounded px-3 py-2 text-sm text-center">
+                                ${metric}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderModule7(m) {
+            return `
+                <div class="grid grid-cols-2 gap-3">
+                    ${m.details.outputs.map(output => `
+                        <div class="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-300 rounded-lg p-4">
+                            <h5 class="font-bold text-violet-900 mb-1">${output.name}</h5>
+                            <p class="text-xs text-gray-600">${output.desc}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderModuleDetails(m) {
+            const renderers = {
+                1: renderModule1,
+                2: renderModule2,
+                3: renderModule3,
+                4: renderModule4,
+                5: renderModule5,
+                6: renderModule6,
+                7: renderModule7
+            };
+            return renderers[m.id](m);
+        }
+
+        function renderModules() {
+            const container = document.getElementById('modules-container');
+            container.innerHTML = modules.map((m, idx) => `
+                <div class="relative transform transition-all duration-300">
+                    <!-- Card -->
+                    <div id="module-${m.id}" 
+                         onclick="toggleModule(${m.id})" 
+                         class="module-card ${m.id === 3 ? 'expanded' : ''} relative overflow-hidden rounded-2xl cursor-pointer bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border-2 ${m.critical ? 'border-red-400 ring-4 ring-red-300 ring-opacity-50 animate-pulse-custom' : 'border-gray-200'}">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r ${m.gradient} p-6 text-white">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-3">
+                                        ${getIcon(m.icon)}
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="text-2xl font-bold">${m.title}</h3>
+                                            ${m.critical ? '<span class="bg-white text-red-600 text-xs font-bold px-2 py-1 rounded-full">CRÍTICO</span>' : ''}
+                                        </div>
+                                        <p class="text-sm opacity-90 mt-1">${m.subtitle}</p>
+                                    </div>
+                                </div>
+                                <div class="text-white">
+                                    ${getIcon('chevron-down', 'w-6 h-6 chevron-down')}
+                                    ${getIcon('chevron-up', 'w-6 h-6 chevron-up hidden')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Details -->
+                        <div id="details-${m.id}" class="details-content ${m.id === 3 ? 'expanded' : ''}">
+                            <div class="p-6 space-y-4 bg-gradient-to-br from-gray-50 to-white">
+                                ${renderModuleDetails(m)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Arrow -->
+                    ${idx < modules.length - 1 ? `
+                        <div class="flex justify-center py-4">
+                            <div class="w-1 h-12 bg-gradient-to-b ${m.gradient} rounded-full relative">
+                                <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-current"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Renderizar módulos ao carregar a página
+        renderModules();
+    </script>
+</body>
+</html>
